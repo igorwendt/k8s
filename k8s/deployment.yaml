@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: goserver    
-  replicas: 1
+  replicas: 10
   template:
     metadata:
       labels:
@@ -17,21 +17,43 @@ spec:
       containers:
         - name: goserver
           image: "igorwendt/hello-go:v9.6"
+          envFrom:
+            - configMapRef:
+                name: configmap-env
+            - secretRef:
+                name: goserver-secret
 
-          resources:
-            requests: 
-              cpu: "0.05"
-              memory: 20Mi
-            limits:
-              cpu: "0.05"
-              memory: 25Mi
+          volumeMounts:
+            - mountPath: "/go/mypets"
+              name: config
+          # env:
+          #   - name: NAME
+          #     value: "Jon"
+          #   - name: AGE
+          #     value: "35"
+          
+          # env:
+          #   - name: NAME
+          #     valueFrom:
+          #       configMapKeyRef:
+          #         name: configmap-env
+          #         key: NAME
 
-          startupProbe:
-            httpGet:
-              path: /healthz
-              port: 8000
-            periodSeconds: 4
-            failureThreshold: 30
+          #   - name: AGE
+          #     valueFrom:
+          #       configMapKeyRef:
+          #         name: configmap-env
+          #         key: AGE     
+                       
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8000
+          #   periodSeconds: 5
+          #   failureThreshold: 1
+          #   timeoutSeconds: 1
+          #   successThreshold: 1
+            # initialDelaySeconds: 15
 
           readinessProbe:
             httpGet:
@@ -39,40 +61,20 @@ spec:
               port: 8000
             periodSeconds: 3
             failureThreshold: 1
-            # initialDelaySeconds: 10
+          #   # initialDelaySeconds: 10
 
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8000
-            periodSeconds: 5
-            failureThreshold: 1
-            timeoutSeconds: 1
-            successThreshold: 1
-            # initialDelaySeconds: 15
-
-          envFrom:
-            - configMapRef:
-                name: goserver-env
-            - secretRef:
-                name: goserver-secret
-          
-          volumeMounts:
-            - mountPath: "/go/myfamily"
-              name: config
-              readOnly: true
-            - mountPath: "/go/pvc"
-              name: goserver-volume
-
+          # startupProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8000
+          #   periodSeconds: 4
+          #   failureThreshold: 30
       volumes:
-        - name: goserver-volume
-          persistentVolumeClaim:
-            claimName: goserver-pvc
-
         - name: config
           configMap:
-            name: configmap-family
+            name: configmap-pets
             items:
             - key: members
-              path: "family.txt"  
-      
+              path: "pets.txt"
+
+            
