@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goserver
+  labels:
+    app: goserver
+spec:
+  selector:
+    matchLabels:
+      app: goserver    
+  replicas: 10
+  template:
+    metadata:
+      labels:
+        app: "goserver"
+    spec:
+      containers:
+        - name: goserver
+          image: "igorwendt/hello-go:v9.6"
+          envFrom:
+            - configMapRef:
+                name: configmap-env
+            - secretRef:
+                name: goserver-secret
+
+          volumeMounts:
+            - mountPath: "/go/mypets"
+              name: config
+          # env:
+          #   - name: NAME
+          #     value: "Jon"
+          #   - name: AGE
+          #     value: "35"
+          
+          # env:
+          #   - name: NAME
+          #     valueFrom:
+          #       configMapKeyRef:
+          #         name: configmap-env
+          #         key: NAME
+
+          #   - name: AGE
+          #     valueFrom:
+          #       configMapKeyRef:
+          #         name: configmap-env
+          #         key: AGE     
+                       
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8000
+          #   periodSeconds: 5
+          #   failureThreshold: 1
+          #   timeoutSeconds: 1
+          #   successThreshold: 1
+            # initialDelaySeconds: 15
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 3
+            failureThreshold: 1
+          #   # initialDelaySeconds: 10
+
+          # startupProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8000
+          #   periodSeconds: 4
+          #   failureThreshold: 30
+      volumes:
+        - name: config
+          configMap:
+            name: configmap-pets
+            items:
+            - key: members
+              path: "pets.txt"
+
+            
